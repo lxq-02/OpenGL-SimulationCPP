@@ -24,6 +24,9 @@ HDC     hMem;
 GT::Canvas* _canvas = NULL;
 GT::Image* _image = NULL;
 GT::Image* _bkImage = NULL;
+GT::Image* _zoomImage = NULL;
+GT::Image* _zoomImageSimple = NULL;
+float speed = 0.01;
 
 
 // 此代码模块中包含的函数的前向声明:
@@ -83,10 +86,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     /*------------创建绘图用的位图--------------------*/
 
     _canvas = new GT::Canvas(wWidth, wHeight, buffer);
-
-    _bkImage = GT::Image::readFromFile("res/bk.jpg");
     _image = GT::Image::readFromFile("res/carma.png");
-    _image->setAlpha(0.5);
+    //_image->setAlpha(0.5);
+    _zoomImage = GT::Image::zoomImage(_image, 3, 3);
+    _zoomImageSimple = GT::Image::zoomImageSimple(_image, 3, 3);
+    _bkImage = GT::Image::readFromFile("res/bk.jpg");
 
     MSG msg;
 
@@ -109,13 +113,40 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 void Render()
 {
     _canvas->clear();
-    _canvas->setBlend(false);
-    _canvas->drawImage(100, 100, _bkImage);
 
-    //_canvas->setAlphaLimit(10);
+    //_canvas->setBlend(false);
+    /*_canvas->drawImage(100, 100, _bkImage);
+
     _canvas->setBlend(true);
-    _canvas->drawImage(300, 150, _image);
+    _canvas->drawImage(400, 150, _zoomImage);
+    _canvas->drawImage(100, 150, _zoomImageSimple);*/
     
+    GT::Point ptArray[] =
+    {
+        {0, 0, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {800, 0, GT::RGBA(255, 0, 0), GT::floatV2(1.0, 0)},
+        {800, 600, GT::RGBA(255, 0, 0), GT::floatV2(1.0, 1.0)}
+    };
+
+    GT::Point ptArray1[] =
+    {
+        {0, 0, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {0, 600, GT::RGBA(255, 0, 0), GT::floatV2(0, 1.0)},
+        {800, 600, GT::RGBA(255, 0, 0), GT::floatV2(1.0, 1.0)}
+    };
+
+    for (int i = 0; i < 3; ++i)
+    {
+        ptArray[i].m_uv.x += speed;
+        ptArray1[i].m_uv.x += speed;
+    }
+    speed += 0.03;
+
+    _canvas->enableTexture(true);
+    _canvas->bindTexture(_bkImage);
+    _canvas->setTextureType(GT::Image::TX_REPEAT);
+    _canvas->drawTriangle(ptArray[0], ptArray[1], ptArray[2]);
+    _canvas->drawTriangle(ptArray1[0], ptArray1[1], ptArray1[2]);
 
     //for (int x = 0; x < wWidth; x++)
     //{

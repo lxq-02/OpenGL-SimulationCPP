@@ -55,19 +55,49 @@ namespace GT
 		// 初始化P值
 		int p = 2 * disY - disX;
 
-		for (int i = 0; i < sumStep; ++i)
+		RGBA _color;
+		for (int i = 0; i <= sumStep; ++i)
 		{
-			RGBA _color;
 			float _scale = 0;
 			if (useXStep)
 			{
-				_scale = (float)(xNow - pt1.m_x) / (float)(pt2.m_x - pt1.m_x);
+				if (pt2.m_x == pt1.m_x)
+				{
+					_scale = 0;
+				}
+				else
+				{
+					_scale = (float)(xNow - pt1.m_x) / (float)(pt2.m_x - pt1.m_x);
+				}
 			}
 			else
 			{
-				_scale = (float)(yNow - pt1.m_y) / (float)(pt2.m_y - pt1.m_y);
+				if (pt2.m_y == pt1.m_y)
+				{
+					_scale = 0;
+				}
+				else
+				{
+					_scale = (float)(yNow - pt1.m_y) / (float)(pt2.m_y - pt1.m_y);
+				}
 			}
-			_color = colorLerp(pt1.m_color, pt2.m_color, _scale);
+
+			if (m_enableTexture)
+			{
+				floatV2 _uv = uvLerp(pt1.m_uv, pt2.m_uv, _scale);
+				if (m_texture)
+				{
+					_color = m_texture->getColorByUV(_uv.x, _uv.y, m_texType);
+				}
+				else
+				{
+					_color = colorLerp(pt1.m_color, pt2.m_color, _scale);
+				}
+			}
+			else
+			{
+				_color = colorLerp(pt1.m_color, pt2.m_color, _scale);
+			}
 			drawPoint(xNow, yNow, _color);
 
 			if (p >= 0)
@@ -163,6 +193,7 @@ namespace GT
 		}
 		float s = (float)(npt.m_y - ptMin.m_y) / (float)(ptMax.m_y - ptMin.m_y);
 		npt.m_color = colorLerp(ptMin.m_color, ptMax.m_color, s);
+		npt.m_uv = uvLerp(ptMin.m_uv, ptMax.m_uv, s);
 
 		drawTrangleFlat(ptMid, npt, ptMax);
 		drawTrangleFlat(ptMid, npt, ptMin);
@@ -196,6 +227,12 @@ namespace GT
 		RGBA colorEnd1;
 		RGBA colorStart2;
 		RGBA colorEnd2;
+
+		floatV2 uvStart1;
+		floatV2 uvEnd1;
+		floatV2 uvStart2;
+		floatV2 uvEnd2;
+
 		if (pt.m_y < ptFlat1.m_y)
 		{
 			yStart = pt.m_y;
@@ -205,6 +242,11 @@ namespace GT
 			colorEnd1 = ptFlat1.m_color;
 			colorStart2 = pt.m_color;
 			colorEnd2 = ptFlat2.m_color;
+
+			uvStart1 = pt.m_uv;
+			uvEnd1 = ptFlat1.m_uv;
+			uvStart2 = pt.m_uv;
+			uvEnd2 = ptFlat2.m_uv;
 		}
 		else
 		{
@@ -215,6 +257,11 @@ namespace GT
 			colorEnd1 = pt.m_color;
 			colorStart2 = ptFlat2.m_color;
 			colorEnd2 = pt.m_color;
+
+			uvStart1 = ptFlat1.m_uv; 
+			uvEnd1 = pt.m_uv;
+			uvStart2 = ptFlat2.m_uv;
+			uvEnd2 = pt.m_uv;
 		}
 		float yColorStep = 1.0 / (float)(yEnd - yStart);
 		int yColorStart = yStart;
@@ -273,8 +320,11 @@ namespace GT
 			float s = (float)(y - yColorStart) * yColorStep;
 			RGBA _color1 = colorLerp(colorStart1, colorEnd1, s);
 			RGBA _color2 = colorLerp(colorStart2, colorEnd2, s);
-			Point pt1(x1, y, _color1);
-			Point pt2(x2, y, _color2);
+
+			floatV2 _uv1 = uvLerp(uvStart1, uvEnd1, s);
+			floatV2 _uv2 = uvLerp(uvStart2, uvEnd2, s);
+			Point pt1(x1, y, _color1, _uv1);
+			Point pt2(x2, y, _color2, _uv2);
 
 			drawLine(pt1, pt2);
 		}
@@ -297,23 +347,35 @@ namespace GT
 
 		int x = pt.m_x;
 		int y = pt.m_y;
-			
-		// 计算直线参数值
-		float k1 = (float)(pt1.m_y - pt2.m_y) / (float)(pt1.m_x - pt2.m_x);
-		float k2 = (float)(pt1.m_y - pt3.m_y) / (float)(pt1.m_x - pt3.m_x);
-		float k3 = (float)(pt3.m_y - pt2.m_y) / (float)(pt3.m_x - pt2.m_x);
 
-		// 计算直线的b值
-		float b1 = (float)pt1.m_y - k1 * (float)pt1.m_x;
-		float b2 = (float)pt3.m_y - k2 * (float)pt3.m_x;
-		float b3 = (float)pt2.m_y - k3 * (float)pt2.m_x;
+		// 计算三条边的斜率和截距
+		float k1 = 0, k2 = 0, k3 = 0;
+		float b1 = 0, b2 = 0, b3 = 0;
 
-		// 判断当前点是否在三角形范围内
+		// 防止除零错误，检查是否为垂直线
+		if (pt1.m_x != pt2.m_x) {
+			k1 = (float)(pt1.m_y - pt2.m_y) / (float)(pt1.m_x - pt2.m_x);
+			b1 = (float)pt1.m_y - k1 * (float)pt1.m_x;
+		}
+
+		if (pt1.m_x != pt3.m_x) {
+			k2 = (float)(pt1.m_y - pt3.m_y) / (float)(pt1.m_x - pt3.m_x);
+			b2 = (float)pt1.m_y - k2 * (float)pt1.m_x;
+		}
+
+		if (pt2.m_x != pt3.m_x) {
+			k3 = (float)(pt2.m_y - pt3.m_y) / (float)(pt2.m_x - pt3.m_x);
+			b3 = (float)pt2.m_y - k3 * (float)pt2.m_x;
+		}
+
+		// 判断当前点是否在三角形内部
+		// 通过比较点与三角形三条边的关系来判断
 		float judge1 = (y - (k1 * x + b1)) * (pt3.m_y - (k1 * pt3.m_x + b1));
 		float judge2 = (y - (k2 * x + b2)) * (pt2.m_y - (k2 * pt2.m_x + b2));
 		float judge3 = (y - (k3 * x + b3)) * (pt1.m_y - (k3 * pt1.m_x + b3));
 
-		if (judge1 >= 0 && judge2 >= 2 && judge3 >= 0)
+		// 如果所有判断结果都为正或零，说明点在三角形内部
+		if (judge1 >= 0 && judge2 >= 0 && judge3 >= 0)
 		{
 			return true;
 		}
@@ -334,10 +396,19 @@ namespace GT
 				else
 				{
 					RGBA _dstColor = getColor(_x + u, _y + v);
-					float _srcAlpha = (float)_srcColor.m_a / 255.0;
-					RGBA _finalColor = colorLerp(_dstColor, _srcColor, _image->getAlpha() * _srcAlpha);
+					float _srcAlpha = (float)_srcColor.m_a / 255.0f;
+					float _dstAlpha = (float)_dstColor.m_a / 255.0f;
+
+					// Alpha blending formula: finalColor = srcAlpha * srcColor + (1 - srcAlpha) * dstColor
+					RGBA _finalColor;
+					_finalColor.m_r = _srcAlpha * _srcColor.m_r + (1.0f - _srcAlpha) * _dstColor.m_r;
+					_finalColor.m_g = _srcAlpha * _srcColor.m_g + (1.0f - _srcAlpha) * _dstColor.m_g;
+					_finalColor.m_b = _srcAlpha * _srcColor.m_b + (1.0f - _srcAlpha) * _dstColor.m_b;
+					_finalColor.m_a = std::min(1.0f, _srcAlpha + _dstAlpha) * 255;  // Combined alpha
+
 					drawPoint(_x + u, _y + v, _finalColor);
 				}
+
 			}
 		}
 	}
@@ -350,6 +421,21 @@ namespace GT
 	void Canvas::setBlend(bool _useBlend)
 	{
 		m_useBlend = _useBlend;
+	}
+
+	void Canvas::enableTexture(bool _enable)
+	{
+		m_enableTexture = _enable;
+	}
+
+	void Canvas::bindTexture(const Image* _image)
+	{
+		m_texture = _image;
+	}
+
+	void Canvas::setTextureType(Image::TEXTURE_TYPE _type)
+	{
+		m_texType = _type;
 	}
 
 	//void Canvas::drawTriangle(Point pt1, Point pt2, Point pt3)

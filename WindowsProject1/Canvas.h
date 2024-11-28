@@ -6,17 +6,19 @@
 
 namespace GT
 {
-	class Point
+	struct Point
 	{
 	public:
 		int		m_x;
 		int		m_y;
 		RGBA	m_color;
-		Point(int _x, int _y, RGBA _color)
+		floatV2 m_uv;
+		Point(int _x = 0, int _y = 0, RGBA _color = RGBA(0,0,0,0), floatV2 _uv = floatV2(0.0, 0.0))
 		{
 			m_x = _x;
 			m_y = _y;
 			m_color = _color;
+			m_uv = _uv;
 		}
 		~Point()
 		{
@@ -33,6 +35,10 @@ namespace GT
 		byte	m_alphaLimit;	// 大于此值的像素才可以进行绘制
 		bool	m_useBlend;		// 是否进行颜色混合
 
+
+		bool					m_enableTexture;// 是否启用纹理切图
+		const Image*			m_texture;
+		Image::TEXTURE_TYPE		m_texType;
 	public:
 		Canvas(int _width, int _height, void* _buffer)
 		{
@@ -47,6 +53,7 @@ namespace GT
 			m_height = _height;
 			m_buffer = (RGBA*)_buffer;
 			m_useBlend = false;
+			m_enableTexture = false;
 		}
 
 		~Canvas()
@@ -93,6 +100,14 @@ namespace GT
 			return _color;
 		}
 
+		inline floatV2 uvLerp(floatV2 _uv1, floatV2 _uv2, float _scale)
+		{
+			floatV2 _uv;
+			_uv.x = _uv1.x + (_uv2.x - _uv1.x) * _scale;
+			_uv.y = _uv1.y + (_uv2.y - _uv1.y) * _scale;
+			return _uv;
+		}
+
 		//*******画线操作
 		void drawLine(Point pt1, Point pt2);
 		void drawTriangle(Point pt1, Point pt2, Point pt3);
@@ -105,5 +120,12 @@ namespace GT
 		void drawImage(int _x, int _y, Image* _image);
 		void setAlphaLimit(byte _limit);
 		void setBlend(bool _useBlend);
+
+		//**********纹理
+		void enableTexture(bool _enable);
+
+		void bindTexture(const Image* _image);
+
+		void setTextureType(Image::TEXTURE_TYPE _type);
 	};
 }
