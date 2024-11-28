@@ -9,8 +9,8 @@ namespace GT
 	struct Point
 	{
 	public:
-		int		m_x;
-		int		m_y;
+		float		m_x;
+		float		m_y;
 		RGBA	m_color;
 		floatV2 m_uv;
 		Point(int _x = 0, int _y = 0, RGBA _color = RGBA(0,0,0,0), floatV2 _uv = floatV2(0.0, 0.0))
@@ -25,6 +25,58 @@ namespace GT
 
 		}
 	};
+
+	enum DATA_TYPE
+	{
+		GT_FLOAT = 0,
+		GT_INT = 1
+	};
+
+	enum DRAW_MODE
+	{
+		GT_LINE = 0,
+		GT_TRIANGLE = 1
+	};
+
+	struct DataElement
+	{
+		int			m_size;
+		DATA_TYPE	m_type;
+		int			m_stride;
+		byte*		m_data;
+
+		DataElement()
+		{
+			m_size = -1;
+			m_type = GT_FLOAT;
+			m_stride = -1;
+			m_data = NULL;
+		}
+	};
+
+	struct Statement
+	{
+		// 状态变量
+		byte	m_alphaLimit;	// 大于此值的像素才可以进行绘制
+		bool					m_useBlend;		// 是否进行颜色混合
+		bool					m_enableTexture;// 是否启用纹理切图
+		const Image*			m_texture;
+		Image::TEXTURE_TYPE		m_texType;
+
+		DataElement				m_vertexData;
+		DataElement				m_colorData;
+		DataElement				m_texCoordData;
+
+		Statement()
+		{
+			m_alphaLimit = 0;
+			m_useBlend = false;
+			m_enableTexture = false;
+			m_texture = NULL;
+			m_texType = Image::TX_REPEAT;
+		}
+	};
+
 	class Canvas
 	{
 	private:
@@ -32,13 +84,8 @@ namespace GT
 		int		m_height;
 		RGBA*	m_buffer;
 
-		byte	m_alphaLimit;	// 大于此值的像素才可以进行绘制
-		bool	m_useBlend;		// 是否进行颜色混合
-
-
-		bool					m_enableTexture;// 是否启用纹理切图
-		const Image*			m_texture;
-		Image::TEXTURE_TYPE		m_texType;
+		
+		Statement m_state;
 	public:
 		Canvas(int _width, int _height, void* _buffer)
 		{
@@ -52,8 +99,8 @@ namespace GT
 			m_width = _width;
 			m_height = _height;
 			m_buffer = (RGBA*)_buffer;
-			m_useBlend = false;
-			m_enableTexture = false;
+			m_state.m_useBlend = false;
+			m_state.m_enableTexture = false;
 		}
 
 		~Canvas()
@@ -127,5 +174,11 @@ namespace GT
 		void bindTexture(const Image* _image);
 
 		void setTextureType(Image::TEXTURE_TYPE _type);
+
+		void gtVertexPointer(int _size, DATA_TYPE _type, int _stride, byte* _data);
+		void gtColorPointer(int _size, DATA_TYPE _type, int _stride, byte* _data);
+		void gtTexCoordPointer(int _size, DATA_TYPE _type, int _stride, byte* _data);
+
+		void gtDrawArray(DRAW_MODE _mode, int _first, int _count);
 	};
 }

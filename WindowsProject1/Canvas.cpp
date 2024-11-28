@@ -82,12 +82,12 @@ namespace GT
 				}
 			}
 
-			if (m_enableTexture)
+			if (m_state.m_enableTexture)
 			{
 				floatV2 _uv = uvLerp(pt1.m_uv, pt2.m_uv, _scale);
-				if (m_texture)
+				if (m_state.m_texture)
 				{
-					_color = m_texture->getColorByUV(_uv.x, _uv.y, m_texType);
+					_color = m_state.m_texture->getColorByUV(_uv.x, _uv.y, m_state.m_texType);
 				}
 				else
 				{
@@ -389,7 +389,7 @@ namespace GT
 			for (int v = 0; v < _image->getHeight(); ++v)
 			{
 				RGBA _srcColor = _image->getColor(u, v);
-				if (!m_useBlend)
+				if (!m_state.m_useBlend)
 				{
 					drawPoint(_x + u, _y + v, _srcColor);
 				}
@@ -415,27 +415,87 @@ namespace GT
 
 	void Canvas::setAlphaLimit(byte _limit)
 	{
-		m_alphaLimit = _limit;
+		m_state.m_alphaLimit = _limit;
 	}
 
 	void Canvas::setBlend(bool _useBlend)
 	{
-		m_useBlend = _useBlend;
+		m_state.m_useBlend = _useBlend;
 	}
 
 	void Canvas::enableTexture(bool _enable)
 	{
-		m_enableTexture = _enable;
+		m_state.m_enableTexture = _enable;
 	}
 
 	void Canvas::bindTexture(const Image* _image)
 	{
-		m_texture = _image;
+		m_state.m_texture = _image;
 	}
 
 	void Canvas::setTextureType(Image::TEXTURE_TYPE _type)
 	{
-		m_texType = _type;
+		m_state.m_texType = _type;
+	}
+
+	void Canvas::gtVertexPointer(int _size, DATA_TYPE _type, int _stride, byte* _data)
+	{
+		m_state.m_vertexData.m_size = _size;
+		m_state.m_vertexData.m_type = _type;
+		m_state.m_vertexData.m_stride = _stride;
+		m_state.m_vertexData.m_data = _data;
+	}
+
+	void Canvas::gtColorPointer(int _size, DATA_TYPE _type, int _stride, byte* _data)
+	{
+		m_state.m_colorData.m_size = _size;
+		m_state.m_colorData.m_type = _type;
+		m_state.m_colorData.m_stride = _stride;
+		m_state.m_colorData.m_data = _data;
+	}
+
+	void Canvas::gtTexCoordPointer(int _size, DATA_TYPE _type, int _stride, byte* _data)
+	{
+		m_state.m_texCoordData.m_size = _size;
+		m_state.m_texCoordData.m_type = _type;
+		m_state.m_texCoordData.m_stride = _stride;
+		m_state.m_texCoordData.m_data = _data;
+	}
+
+	void Canvas::gtDrawArray(DRAW_MODE _mode, int _first, int _count)
+	{
+		// 画直线
+		Point pt0, pt1;
+		switch (_mode)
+		{
+		case GT_LINE:
+		{
+			for (int i = 0; i < _count - 2; i += 2)
+			{
+				byte* _vertexData = m_state.m_vertexData.m_data;
+				float* _vertexDataFloat = (float*)_vertexData;
+				pt0.m_x = _vertexDataFloat[0];
+				pt0.m_y = _vertexDataFloat[1];
+				_vertexData += m_state.m_vertexData.m_stride;
+
+				_vertexDataFloat = (float*)_vertexData;
+				pt1.m_x = _vertexDataFloat[0];
+				pt1.m_y = _vertexDataFloat[1];
+				_vertexData += m_state.m_vertexData.m_stride;
+
+				// 取颜色坐标
+				byte* _colorData = m
+
+			}
+			drawLine(pt0, pt1);
+
+		}
+			break;
+		case GT_TRIANGLE:
+			break;
+		default:
+			break;
+		}
 	}
 
 	//void Canvas::drawTriangle(Point pt1, Point pt2, Point pt3)
