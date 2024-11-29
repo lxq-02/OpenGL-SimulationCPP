@@ -33,6 +33,7 @@ GT::Image* _zoomImageSimple = NULL;
 float speed = 0.01;
 
 float _angle = 0.0f;        // glm旋转角度
+float _xCam = 0;
 
 
 // 此代码模块中包含的函数的前向声明:
@@ -134,7 +135,11 @@ void Render()
         rMat = glm::rotate(rMat, glm::radians(_angle), glm::vec3(1, 0, 0));
         glm::mat4 tMat(1.0f);
         tMat = glm::translate(tMat, glm::vec3(100, 200, 0));
-        ptv4 = tMat * rMat * ptv4;
+        //ptv4 = tMat * rMat * ptv4;
+
+        glm::mat4 vMat(1.0f);
+        vMat = glm::lookAt(glm::vec3(_xCam, 0, 250), glm::vec3(_xCam, 0, 0), glm::vec3(0, 1, 0));
+        ptv4 = vMat * ptv4;
 
         ptArray[i].m_x = ptv4.x;
         ptArray[i].m_y = ptv4.y;
@@ -142,6 +147,7 @@ void Render()
     }
 
     _angle += 1;    // 更改旋转角度
+    _xCam += 5;
 
     _canvas->gtVertexPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)ptArray);
     _canvas->gtColorPointer(1, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)&ptArray[0].m_color);
