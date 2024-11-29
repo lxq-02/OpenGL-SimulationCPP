@@ -466,13 +466,14 @@ namespace GT
 	{
 		// 画直线
 		Point pt0, pt1;
+		byte* _vertexData = m_state.m_vertexData.m_data;
+		byte* _colorData = m_state.m_colorData.m_data;
 		switch (_mode)
 		{
 		case GT_LINE:
 		{
 			for (int i = 0; i < _count - 2; i += 2)
 			{
-				byte* _vertexData = m_state.m_vertexData.m_data;
 				float* _vertexDataFloat = (float*)_vertexData;
 				pt0.m_x = _vertexDataFloat[0];
 				pt0.m_y = _vertexDataFloat[1];
@@ -484,10 +485,17 @@ namespace GT
 				_vertexData += m_state.m_vertexData.m_stride;
 
 				// 取颜色坐标
-				byte* _colorData = m
+				RGBA* _colorDataRGBA = (RGBA*)_colorData;
+				pt0.m_color = _colorDataRGBA[0];
+				_colorData += m_state.m_colorData.m_stride;
 
+				_colorDataRGBA = (RGBA*)_colorData;
+				pt1.m_color = _colorData[0];
+				_colorData += m_state.m_colorData.m_stride;
+
+				drawLine(pt0, pt1);
 			}
-			drawLine(pt0, pt1);
+			
 
 		}
 			break;

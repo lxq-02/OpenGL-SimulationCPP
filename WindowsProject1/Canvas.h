@@ -13,7 +13,7 @@ namespace GT
 		float		m_y;
 		RGBA	m_color;
 		floatV2 m_uv;
-		Point(int _x = 0, int _y = 0, RGBA _color = RGBA(0,0,0,0), floatV2 _uv = floatV2(0.0, 0.0))
+		Point(float _x = 0, float _y = 0, RGBA _color = RGBA(0,0,0,0), floatV2 _uv = floatV2(0.0, 0.0))
 		{
 			m_x = _x;
 			m_y = _y;
