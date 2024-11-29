@@ -252,13 +252,13 @@ namespace GT
 		{
 			yStart = ptFlat1.m_y;
 			yEnd = pt.m_y;
-			
+
 			colorStart1 = ptFlat1.m_color;
 			colorEnd1 = pt.m_color;
 			colorStart2 = ptFlat2.m_color;
 			colorEnd2 = pt.m_color;
 
-			uvStart1 = ptFlat1.m_uv; 
+			uvStart1 = ptFlat1.m_uv;
 			uvEnd1 = pt.m_uv;
 			uvStart2 = ptFlat2.m_uv;
 			uvEnd2 = pt.m_uv;
@@ -465,14 +465,19 @@ namespace GT
 	void Canvas::gtDrawArray(DRAW_MODE _mode, int _first, int _count)
 	{
 		// 画直线
-		Point pt0, pt1;
-		byte* _vertexData = m_state.m_vertexData.m_data;
-		byte* _colorData = m_state.m_colorData.m_data;
+		Point pt0, pt1, pt2;
+		byte* _vertexData = m_state.m_vertexData.m_data + _first * m_state.m_vertexData.m_stride;
+		byte* _colorData = m_state.m_colorData.m_data + _first * m_state.m_vertexData.m_stride;
+		byte* _texCoordData = m_state.m_texCoordData.m_data + _first * m_state.m_vertexData.m_stride;
+
+		_count -= _first;
+
 		switch (_mode)
 		{
 		case GT_LINE:
 		{
-			for (int i = 0; i < _count - 2; i += 2)
+			_count = _count / 2;
+			for (int i = 0; i < _count; i++)
 			{
 				float* _vertexDataFloat = (float*)_vertexData;
 				pt0.m_x = _vertexDataFloat[0];
@@ -495,58 +500,106 @@ namespace GT
 
 				drawLine(pt0, pt1);
 			}
-			
+
 
 		}
-			break;
+		break;
 		case GT_TRIANGLE:
+		{
+			_count = _count / 3;
+			for (int i = 0; i < _count; i++)
+			{
+				float* _vertexDataFloat = (float*)_vertexData;
+				pt0.m_x = _vertexDataFloat[0];
+				pt0.m_y = _vertexDataFloat[1];
+				_vertexData += m_state.m_vertexData.m_stride;
+
+				_vertexDataFloat = (float*)_vertexData;
+				pt1.m_x = _vertexDataFloat[0];
+				pt1.m_y = _vertexDataFloat[1];
+				_vertexData += m_state.m_vertexData.m_stride;
+
+				_vertexDataFloat = (float*)_vertexData;
+				pt2.m_x = _vertexDataFloat[0];
+				pt2.m_y = _vertexDataFloat[1];
+				_vertexData += m_state.m_vertexData.m_stride;
+
+				// 取颜色坐标
+				RGBA* _colorDataRGBA = (RGBA*)_colorData;
+				pt0.m_color = _colorDataRGBA[0];
+				_colorData += m_state.m_colorData.m_stride;
+
+				_colorDataRGBA = (RGBA*)_colorData;
+				pt1.m_color = _colorData[0];
+				_colorData += m_state.m_colorData.m_stride;
+
+				_colorDataRGBA = (RGBA*)_colorData;
+				pt2.m_color = _colorData[0];
+				_colorData += m_state.m_colorData.m_stride;
+
+				// 取uv坐标
+				floatV2* _uvData = (floatV2*)_texCoordData;
+				pt0.m_uv = _uvData[0];
+				_texCoordData += m_state.m_texCoordData.m_stride;
+
+				_uvData = (floatV2*)_texCoordData;
+				pt1.m_uv = _uvData[0];
+				_texCoordData += m_state.m_texCoordData.m_stride;
+
+				_uvData = (floatV2*)_texCoordData;
+				pt2.m_uv = _uvData[0];
+				_texCoordData += m_state.m_texCoordData.m_stride;
+
+				drawTriangle(pt0, pt1, pt2);
+			}
 			break;
 		default:
 			break;
 		}
+		}
+
+		//void Canvas::drawTriangle(Point pt1, Point pt2, Point pt3)
+		//{
+		//	RGBA _color(255, 0, 0);
+		//	// 构建包围体
+		//	int left = MIN(pt3.m_x, MIN(pt1.m_x, pt2.m_x));
+		//	int top = MIN(pt3.m_y, MIN(pt1.m_y, pt2.m_y));
+		//	int right = MAX(pt3.m_x, MAX(pt1.m_x, pt2.m_x));
+		//	int bottom = MAX(pt3.m_y, MAX(pt1.m_y, pt2.m_y));
+
+		//	// 剪裁屏幕
+		//	left = left < 0 ? 0 : left;
+		//	top = top < 0 ? 0 : top;
+		//	right = right > (m_width - 1) ? (m_width - 1) : right;
+		//	bottom = bottom > (m_height - 1) ? (m_height - 1) : bottom;
+
+		//	// 计算直线参数值
+		//	float k1 = (float)(pt2.m_y - pt3.m_y) / (float)(pt2.m_x - pt3.m_x);
+		//	float k2 = (float)(pt1.m_y - pt3.m_y) / (float)(pt1.m_x - pt3.m_x);
+		//	float k3 = (float)(pt2.m_y - pt1.m_y) / (float)(pt2.m_x - pt1.m_x);
+
+		//	// 计算直线的b值
+		//	float b1 = (float)pt2.m_y - k1 * (float)pt2.m_x;
+		//	float b2 = (float)pt3.m_y - k2 * (float)pt3.m_x;
+		//	float b3 = (float)pt1.m_y - k3 * (float)pt1.m_x;
+
+		//	// 循环判断
+		//	for (int x = left; x <= right; x++)
+		//	{
+		//		for (int y = top; y <= bottom; y++)
+		//		{
+		//			// 判断当前点是否在三角形范围内
+		//			float judge1 = (y - (k1 * x + b1)) * (pt1.m_y - (k1 * pt1.m_x + b1));
+		//			float judge2 = (y - (k2 * x + b2)) * (pt2.m_y - (k2 * pt2.m_x + b2));
+		//			float judge3 = (y - (k3 * x + b3)) * (pt3.m_y - (k3 * pt3.m_x + b3));
+
+		//			if (judge1 >= 0 && judge2 >= 2 && judge3 >= 0)
+		//			{
+		//				drawPoint(x, y, _color);
+		//			}
+		//		}
+		//	}
+		//}
 	}
-
-	//void Canvas::drawTriangle(Point pt1, Point pt2, Point pt3)
-	//{
-	//	RGBA _color(255, 0, 0);
-	//	// 构建包围体
-	//	int left = MIN(pt3.m_x, MIN(pt1.m_x, pt2.m_x));
-	//	int top = MIN(pt3.m_y, MIN(pt1.m_y, pt2.m_y));
-	//	int right = MAX(pt3.m_x, MAX(pt1.m_x, pt2.m_x));
-	//	int bottom = MAX(pt3.m_y, MAX(pt1.m_y, pt2.m_y));
-
-	//	// 剪裁屏幕
-	//	left = left < 0 ? 0 : left;
-	//	top = top < 0 ? 0 : top;
-	//	right = right > (m_width - 1) ? (m_width - 1) : right;
-	//	bottom = bottom > (m_height - 1) ? (m_height - 1) : bottom;
-
-	//	// 计算直线参数值
-	//	float k1 = (float)(pt2.m_y - pt3.m_y) / (float)(pt2.m_x - pt3.m_x);
-	//	float k2 = (float)(pt1.m_y - pt3.m_y) / (float)(pt1.m_x - pt3.m_x);
-	//	float k3 = (float)(pt2.m_y - pt1.m_y) / (float)(pt2.m_x - pt1.m_x);
-
-	//	// 计算直线的b值
-	//	float b1 = (float)pt2.m_y - k1 * (float)pt2.m_x;
-	//	float b2 = (float)pt3.m_y - k2 * (float)pt3.m_x;
-	//	float b3 = (float)pt1.m_y - k3 * (float)pt1.m_x;
-
-	//	// 循环判断
-	//	for (int x = left; x <= right; x++)
-	//	{
-	//		for (int y = top; y <= bottom; y++)
-	//		{
-	//			// 判断当前点是否在三角形范围内
-	//			float judge1 = (y - (k1 * x + b1)) * (pt1.m_y - (k1 * pt1.m_x + b1));
-	//			float judge2 = (y - (k2 * x + b2)) * (pt2.m_y - (k2 * pt2.m_x + b2));
-	//			float judge3 = (y - (k3 * x + b3)) * (pt3.m_y - (k3 * pt3.m_x + b3));
-
-	//			if (judge1 >= 0 && judge2 >= 2 && judge3 >= 0)
-	//			{
-	//				drawPoint(x, y, _color);
-	//			}
-	//		}
-	//	}
-	//}
 }
 

@@ -123,17 +123,22 @@ void Render()
     
     GT::Point ptArray[] =
     {
-        {0.0f, 200.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
-        {800.0f, 200.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
-        {100.0f, 600.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)},
-        {800.0f, 300.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)},
-        {200.0f, 150.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)}
+        {0.0f,   0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {500.0f, 0.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
+        {500.0f, 300.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)},
+        {0.0f,   300.0f, GT::RGBA(0, 0, 255), GT::floatV2(0, 1.0)},
+        {0.0f,   0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {500.0f, 300.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 1.0)}
     };
 
     _canvas->gtVertexPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)ptArray);
     _canvas->gtColorPointer(1, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)&ptArray[0].m_color);
+    _canvas->gtTexCoordPointer(1, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)&ptArray[0].m_uv);
 
-    _canvas->gtDrawArray(GT::GT_LINE, 0, 5);
+    _canvas->enableTexture(true);
+    _canvas->bindTexture(_bkImage);
+
+    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 6);
 
     //for (int x = 0; x < wWidth; x++)
     //{
