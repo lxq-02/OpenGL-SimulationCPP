@@ -162,6 +162,7 @@ namespace GT
 
 		bool judgeInRect(Point pt, GT_RECT _rect);
 		bool judgeInTriangle(Point pt, std::vector<Point> _ptArray);
+		bool judgeLineAndRect(int _x1, int _x2, int& _x1Cut, int& _x2Cut);
 
 		//*******Í¼Æ¬²Ù×÷
 		void drawImage(int _x, int _y, Image* _image);

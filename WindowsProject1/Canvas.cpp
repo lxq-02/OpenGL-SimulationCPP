@@ -275,7 +275,7 @@ namespace GT
 			yEnd = m_height - 1;
 		}
 
-		for (int y = yStart; y <= yEnd; ++y)
+		for (int y = yStart; y < yEnd; ++y)
 		{
 			int x1 = 0;
 			if (k1 == 0)
@@ -285,16 +285,6 @@ namespace GT
 			else
 			{
 				x1 = ((float)y - b1) / k1;
-			}
-
-			// 剪裁x1
-			if (x1 < 0)
-			{
-				x1 = 0;
-			}
-			if (x1 > m_width)
-			{
-				x1 = m_width - 1;
 			}
 
 			int x2 = 0;
@@ -307,22 +297,37 @@ namespace GT
 				x2 = ((float)y - b2) / k2;
 			}
 
-			// 剪裁x2
-			if (x2 < 0)
+			// 剪裁x1以及x2
+			int x1Cut = x1;
+			int x2Cut = x2;
+			if (!judgeLineAndRect(x1, x2, x1Cut, x2Cut))
 			{
-				x2 = 0;
-			}
-			if (x2 > m_width)
-			{
-				x2 = m_width - 1;
+				continue;
 			}
 
 			float s = (float)(y - yColorStart) * yColorStep;
 			RGBA _color1 = colorLerp(colorStart1, colorEnd1, s);
 			RGBA _color2 = colorLerp(colorStart2, colorEnd2, s);
+			// 避免剪裁x坐标产生的影响
+			RGBA _color1Cut = _color1;
+			RGBA _color2Cut = _color2;
+			if (x2 != x1)
+			{
+				_color1Cut = colorLerp(_color1, _color2, (float)(x1Cut - x1) / (float)(x2 - x1));
+				_color2Cut = colorLerp(_color1, _color2, (float)(x2Cut - x2) / (float)(x2 - x1));
+			}
 
 			floatV2 _uv1 = uvLerp(uvStart1, uvEnd1, s);
 			floatV2 _uv2 = uvLerp(uvStart2, uvEnd2, s);
+			// 避免剪裁x坐标产生的影响
+			floatV2 _uv1Cut = _uv1;
+			floatV2 _uv2Cut = _uv2;
+			if (x2 != x1)
+			{
+				_uv1Cut = uvLerp(_uv1, _uv2, (float)(x1Cut - x1) / (float)(x2 - x1));
+				_uv2Cut = uvLerp(_uv1, _uv2, (float)(x2Cut - x2) / (float)(x2 - x1));
+			}
+
 			Point pt1(x1, y, _color1, _uv1);
 			Point pt2(x2, y, _color2, _uv2);
 
@@ -375,11 +380,46 @@ namespace GT
 		float judge3 = (y - (k3 * x + b3)) * (pt1.m_y - (k3 * pt1.m_x + b3));
 
 		// 如果所有判断结果都为正或零，说明点在三角形内部
-		if (judge1 >= 0 && judge2 >= 0 && judge3 >= 0)
+		if (judge1 > 0 && judge2 > 0 && judge3 > 0)
 		{
 			return true;
 		}
 		return false;
+	}
+
+	bool Canvas::judgeLineAndRect(int _x1, int _x2, int& _x1Cut, int& _x2Cut)
+	{
+		if (_x1 < 0 && _x2 < 0)
+		{
+			return false;
+		}
+
+		if (_x1 > m_width - 1 && _x2 > m_width - 1)
+		{
+			return false;
+		}
+
+		// 剪裁x1
+		_x1Cut = _x1;
+		if (_x1 < 0)
+		{
+			_x1Cut = 0;
+		}
+		if (_x1 > m_width - 1)
+		{
+			_x1Cut = m_width - 1;
+		}
+		// 剪裁x2
+		_x2Cut = _x2;
+		if (_x2 < 0)
+		{
+			_x2Cut = 0;
+		}
+		if (_x2 > m_width - 1)
+		{
+			_x2Cut = m_width - 1;
+		}
+		return true;
 	}
 
 	void Canvas::drawImage(int _x, int _y, Image* _image)
