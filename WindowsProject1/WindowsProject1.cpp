@@ -7,6 +7,10 @@
 #include <math.h>
 #include "Image.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define MAX_LOADSTRING 100
 #define DEG2RAD(deg) ((deg) * 3.14159265358979323846f / 180.0f)
 
@@ -105,16 +109,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         Render();
     }
-    //while (GetMessage(&msg, nullptr, 0, 0))
-    //{
-    //    if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-    //    {
-    //        TranslateMessage(&msg);
-    //        DispatchMessage(&msg);
-    //    }
-
-    //    Render();   
-    //}
 
     return (int) msg.wParam;
 }
@@ -123,13 +117,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 void Render()
 {
     _canvas->clear();
-
-    //_canvas->setBlend(false);
-    /*_canvas->drawImage(100, 100, _bkImage);
-
-    _canvas->setBlend(true);
-    _canvas->drawImage(400, 150, _zoomImage);
-    _canvas->drawImage(100, 150, _zoomImageSimple);*/
     
     GT::Point ptArray[] =
     {
@@ -149,32 +136,6 @@ void Render()
     _canvas->bindTexture(_bkImage);
 
     _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 6);
-
-    //for (int x = 0; x < wWidth; x++)
-    //{
-    //    for (int y = 0; y < wHeight; y++)
-    //    {
-    //        GT::RGBA _color(rand()%255, rand() % 255, rand() % 255, 0);
-    //        _canvas->drawPoint(x, y, _color);
-    //    }
-    //}
-    //_canvas->drawLine(GT::intV2(100, 100), GT::intV2(150, 180), GT::RGBA(255, 0, 0));
-
-    //GT::Point   pt1(-100, -150, GT::RGBA(255, 0, 0));
-    //GT::Point   pt2(500, 50, GT::RGBA(0, 255, 0));
-    //GT::Point   pt3(250, 1500, GT::RGBA(0, 0, 255));
-
-    //_canvas->drawTriangle(pt1, pt2, pt3);
-    /*float   dis = 100;
-    for (float i = 0; i < 360; i += 20)
-    {
-        float radius = DEG2RAD(i);
-        int x = dis * sin(radius) + pt1.m_x;
-        int y = dis * cos(radius) + pt1.m_y;
-        GT::Point   pt2(x, y, GT::RGBA(0, 255, 0));
-
-        _canvas->drawLine(pt1, pt2);
-    }*/
 
     // 在这里画到设备上，hMem相当于缓冲区
     BitBlt(hDC, 0, 0, wWidth, wHeight, hMem, 0, 0, SRCCOPY);
