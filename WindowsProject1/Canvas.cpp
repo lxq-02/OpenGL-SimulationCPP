@@ -141,10 +141,10 @@ namespace GT
 			{
 				break;
 			}
-			Point rpt1(0, 0, RGBA());
-			Point rpt2(m_width, 0, RGBA());
-			Point rpt3(0, m_height, RGBA());
-			Point rpt4(m_width, m_height, RGBA());
+			Point rpt1(0, 0, 0, RGBA());
+			Point rpt2(m_width, 0, 0, RGBA());
+			Point rpt3(0, m_height, 0, RGBA());
+			Point rpt4(m_width, m_height, 0, RGBA());
 
 			if (judgeInTriangle(rpt1, pVec) ||
 				judgeInTriangle(rpt2, pVec) ||
@@ -181,7 +181,7 @@ namespace GT
 		}
 		float b = (float)(ptMax.m_y) - (float)ptMax.m_x * k;
 
-		Point npt(0, 0, RGBA(255, 0, 0));
+		Point npt(0, 0, 0, RGBA(255, 0, 0));
 		npt.m_y = ptMid.m_y;
 		if (k == 0)
 		{
@@ -328,8 +328,8 @@ namespace GT
 				_uv2Cut = uvLerp(_uv1, _uv2, (float)(x2Cut - x2) / (float)(x2 - x1));
 			}
 
-			Point pt1(x1, y, _color1, _uv1);
-			Point pt2(x2, y, _color2, _uv2);
+			Point pt1(x1, y, 0, _color1, _uv1);
+			Point pt2(x2, y, 0, _color2, _uv2);
 
 			drawLine(pt1, pt2);
 		}

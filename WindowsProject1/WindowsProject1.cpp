@@ -122,39 +122,26 @@ void Render()
     
     GT::Point ptArray[] =
     {
-        {0.0f,   0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
-        {500.0f, 0.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
-        {500.0f, 300.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)}/*,
-        {0.0f,   300.0f, GT::RGBA(0, 0, 255), GT::floatV2(0, 1.0)},
-        {0.0f,   0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
-        {500.0f, 300.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 1.0)}*/
+        {0.0f,   0.0f, 0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {500.0f, 0.0f, 0.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
+        {500.0f, 300.0f, 0.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)}
     };
 
-    // 遍历前三个点
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; ++i)
     {
-        // 将当前顶点的坐标 (m_x, m_y) 转换为一个 4D 向量 (x, y, 0, 1)
-        glm::vec4 ptv4(ptArray[i].m_x, ptArray[i].m_y, 0, 1);
-
-        // 创建一个单位矩阵，作为旋转矩阵的基础
+        glm::vec4 ptv4(ptArray[i].m_x, ptArray[i].m_y, ptArray[i].m_z, 1);
         glm::mat4 rMat(1.0f);
+        rMat = glm::rotate(rMat, glm::radians(_angle), glm::vec3(1, 0, 0));
+        glm::mat4 tMat(1.0f);
+        tMat = glm::translate(tMat, glm::vec3(100, 200, 0));
+        ptv4 = tMat * rMat * ptv4;
 
-        // 用 glm::rotate 生成绕 Z 轴旋转 20 度的旋转矩阵
-        rMat = glm::rotate(rMat, glm::radians(_angle), glm::vec3(0, 0, 1));
-
-        glm::mat4 tMat(1.0f);   // 平移矩阵
-        tMat = glm::translate(tMat, glm::vec3(200, 200, 0));
-
-
-        // 将顶点坐标 ptv4 乘以旋转矩阵 rMat，进行旋转变换
-        ptv4 = tMat * rMat * ptv4;      // 先旋转再平移
-
-        // 将旋转后的 x 和 y 坐标更新回原顶点
         ptArray[i].m_x = ptv4.x;
         ptArray[i].m_y = ptv4.y;
+        ptArray[i].m_z = ptv4.z;
     }
 
-    _angle += 2;    // 更改旋转角度
+    _angle += 1;    // 更改旋转角度
 
     _canvas->gtVertexPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)ptArray);
     _canvas->gtColorPointer(1, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)&ptArray[0].m_color);
@@ -163,7 +150,7 @@ void Render()
     _canvas->enableTexture(true);
     _canvas->bindTexture(_bkImage);
 
-    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 6);
+    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 3);
 
     // 在这里画到设备上，hMem相当于缓冲区
     BitBlt(hDC, 0, 0, wWidth, wHeight, hMem, 0, 0, SRCCOPY);
