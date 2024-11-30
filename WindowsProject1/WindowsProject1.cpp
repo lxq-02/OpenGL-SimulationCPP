@@ -34,6 +34,7 @@ float speed = 0.01;
 
 float _angle = 0.0f;        // glm旋转角度
 float _xCam = 0;
+float _zRun = 0;
 
 
 // 此代码模块中包含的函数的前向声明:
@@ -123,31 +124,39 @@ void Render()
     
     GT::Point ptArray[] =
     {
-        {0.0f,   0.0f, 0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {200.0f,   0.0f, -100.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {800.0f, 0.0f, -100.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
+        {800.0f, 300.0f, -100.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)},
+
+                { 0.0f,   0.0f, 0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0) },
         {500.0f, 0.0f, 0.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
         {500.0f, 300.0f, 0.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)}
     };
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 6; ++i)
     {
+        if (i == 0 || i == 1 || i == 2)
+        {
+            ptArray[i].m_z -= _zRun;
+        }
         glm::vec4 ptv4(ptArray[i].m_x, ptArray[i].m_y, ptArray[i].m_z, 1);
-        glm::mat4 rMat(1.0f);
-        rMat = glm::rotate(rMat, glm::radians(_angle), glm::vec3(1, 0, 0));
-        glm::mat4 tMat(1.0f);
-        tMat = glm::translate(tMat, glm::vec3(100, 200, 0));
-        //ptv4 = tMat * rMat * ptv4;
 
         glm::mat4 vMat(1.0f);
-        vMat = glm::lookAt(glm::vec3(_xCam, 0, 250), glm::vec3(_xCam, 0, 0), glm::vec3(0, 1, 0));
-        ptv4 = vMat * ptv4;
+        vMat = glm::lookAt(glm::vec3(0, 0, 1000), glm::vec3(0 , 0, 0), glm::vec3(0, 1, 0));
 
-        ptArray[i].m_x = ptv4.x;
-        ptArray[i].m_y = ptv4.y;
-        ptArray[i].m_z = ptv4.z;
+        glm::mat4 pMat(1.0f);
+        pMat = glm::perspective(glm::radians(60.0f), (float)wWidth / (float)wHeight, 1.0f, 1000.0f);
+
+        ptv4 = pMat * vMat * ptv4;
+
+        ptArray[i].m_x = (ptv4.x / ptv4.w + 1.0) * (float)wWidth / 2.0;
+        ptArray[i].m_y = (ptv4.y / ptv4.w + 1.0) * (float)wHeight / 2.0;
+        ptArray[i].m_z = ptv4.z / ptv4.w;
     }
 
     _angle += 1;    // 更改旋转角度
     _xCam += 5;
+    _zRun += 2;
 
     _canvas->gtVertexPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)ptArray);
     _canvas->gtColorPointer(1, GT::GT_FLOAT, sizeof(GT::Point), (GT::byte*)&ptArray[0].m_color);
@@ -156,7 +165,7 @@ void Render()
     _canvas->enableTexture(true);
     _canvas->bindTexture(_bkImage);
 
-    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 3);
+    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 6);
 
     // 在这里画到设备上，hMem相当于缓冲区
     BitBlt(hDC, 0, 0, wWidth, wHeight, hMem, 0, 0, SRCCOPY);
