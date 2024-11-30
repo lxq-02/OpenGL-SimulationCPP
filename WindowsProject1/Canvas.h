@@ -85,7 +85,7 @@ namespace GT
 		int		m_width;
 		int		m_height;
 		RGBA*	m_buffer;
-
+		float*	m_zBuffer;
 		
 		Statement m_state;
 	public:
@@ -101,13 +101,14 @@ namespace GT
 			m_width = _width;
 			m_height = _height;
 			m_buffer = (RGBA*)_buffer;
+			m_zBuffer = new float[_width * _height];
 			m_state.m_useBlend = false;
 			m_state.m_enableTexture = false;
 		}
 
 		~Canvas()
 		{
-
+			delete[] m_zBuffer;
 		}
 
 		void clear()
@@ -115,19 +116,26 @@ namespace GT
 			if (m_buffer != NULL)
 			{
 				memset(m_buffer, 0, sizeof(RGBA) * m_width * m_height);
+				memset(m_zBuffer, 255, sizeof(float) * m_width * m_height);
 			}
 		}
 
 		//*******画点操作
-		void drawPoint(int x, int y, RGBA _color)
+		void drawPoint(Point _pt)
 		{
-			if (x < 0 || x >= m_width || y < 0 || y >= m_height)
+			if (_pt.m_x < 0 || _pt.m_x >= m_width || _pt.m_y < 0 || _pt.m_y >= m_height)
 			{
 				// 超出范围，不画
 				return;
 			}
+			int _index = _pt.m_y * m_width + _pt.m_x;
 
-			m_buffer[y * m_width + x] = _color;
+			if (_pt.m_z > m_zBuffer[_index])
+			{
+				return;
+			}
+			m_zBuffer[_index] = _pt.m_z;
+			m_buffer[_index] = _pt.m_color;
 		}
 
 		RGBA getColor(int x, int y)
@@ -155,6 +163,11 @@ namespace GT
 			_uv.x = _uv1.x + (_uv2.x - _uv1.x) * _scale;
 			_uv.y = _uv1.y + (_uv2.y - _uv1.y) * _scale;
 			return _uv;
+		}
+
+		inline float zLerp(float _z1, float _z2, float _scale)
+		{
+			return _z1 + (_z2 - _z1) * _scale;
 		}
 
 		//*******画线操作

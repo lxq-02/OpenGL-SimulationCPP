@@ -98,7 +98,10 @@ namespace GT
 			{
 				_color = colorLerp(pt1.m_color, pt2.m_color, _scale);
 			}
-			drawPoint(xNow, yNow, _color);
+
+			// z插值
+			float zNow = zLerp(pt1.m_z, pt2.m_z, _scale);
+			drawPoint(Point(xNow, yNow, zNow, _color));
 
 			if (p >= 0)
 			{
@@ -194,6 +197,7 @@ namespace GT
 		float s = (float)(npt.m_y - ptMin.m_y) / (float)(ptMax.m_y - ptMin.m_y);
 		npt.m_color = colorLerp(ptMin.m_color, ptMax.m_color, s);
 		npt.m_uv = uvLerp(ptMin.m_uv, ptMax.m_uv, s);
+		npt.m_z = zLerp(ptMin.m_z, ptMax.m_z, s);
 
 		drawTrangleFlat(ptMid, npt, ptMax);
 		drawTrangleFlat(ptMid, npt, ptMin);
@@ -233,6 +237,11 @@ namespace GT
 		floatV2 uvStart2;
 		floatV2 uvEnd2;
 
+		float zStart1;
+		float zEnd1;
+		float zStart2;
+		float zEnd2;
+
 		if (pt.m_y < ptFlat1.m_y)
 		{
 			yStart = pt.m_y;
@@ -247,6 +256,11 @@ namespace GT
 			uvEnd1 = ptFlat1.m_uv;
 			uvStart2 = pt.m_uv;
 			uvEnd2 = ptFlat2.m_uv;
+
+			zStart1 = pt.m_z;
+			zEnd1 = ptFlat1.m_z;
+			zStart2 = pt.m_z;
+			zEnd2 = ptFlat2.m_z;
 		}
 		else
 		{
@@ -262,6 +276,11 @@ namespace GT
 			uvEnd1 = pt.m_uv;
 			uvStart2 = ptFlat2.m_uv;
 			uvEnd2 = pt.m_uv;
+
+			zStart1 = ptFlat1.m_z;
+			zEnd1 = pt.m_z;
+			zStart2 = ptFlat2.m_z;
+			zEnd2 = pt.m_z;
 		}
 		float yColorStep = 1.0 / (float)(yEnd - yStart);
 		int yColorStart = yStart;
@@ -328,8 +347,19 @@ namespace GT
 				_uv2Cut = uvLerp(_uv1, _uv2, (float)(x2Cut - x2) / (float)(x2 - x1));
 			}
 
-			Point pt1(x1, y, 0, _color1, _uv1);
-			Point pt2(x2, y, 0, _color2, _uv2);
+			float _z1 = zLerp(zStart1, zEnd1, s);
+			float _z2 = zLerp(zStart2, zEnd2, s);
+			// 避免剪裁x坐标产生的影响
+			float _z1Cut = _z1;
+			float _z2Cut = _z2;
+			if (x2 != x1)
+			{
+				_z1Cut = zLerp(_z1, _z2, (float)(x1Cut - x1) / (float)(x2 - x1));
+				_z2Cut = zLerp(_z1, _z2, (float)(x2Cut - x2) / (float)(x2 - x1));
+			}
+
+			Point pt1(x1Cut, y, _z1Cut, _color1, _uv1);
+			Point pt2(x2Cut, y, _z2Cut, _color2, _uv2);
 
 			drawLine(pt1, pt2);
 		}
@@ -431,7 +461,7 @@ namespace GT
 				RGBA _srcColor = _image->getColor(u, v);
 				if (!m_state.m_useBlend)
 				{
-					drawPoint(_x + u, _y + v, _srcColor);
+					//drawPoint(_x + u, _y + v, _srcColor);
 				}
 				else
 				{
@@ -446,7 +476,7 @@ namespace GT
 					_finalColor.m_b = _srcAlpha * _srcColor.m_b + (1.0f - _srcAlpha) * _dstColor.m_b;
 					_finalColor.m_a = std::min(1.0f, _srcAlpha + _dstAlpha) * 255;  // Combined alpha
 
-					drawPoint(_x + u, _y + v, _finalColor);
+					//drawPoint(_x + u, _y + v, _finalColor);
 				}
 
 			}
@@ -552,16 +582,19 @@ namespace GT
 				float* _vertexDataFloat = (float*)_vertexData;
 				pt0.m_x = _vertexDataFloat[0];
 				pt0.m_y = _vertexDataFloat[1];
+				pt0.m_z = _vertexDataFloat[2];
 				_vertexData += m_state.m_vertexData.m_stride;
 
 				_vertexDataFloat = (float*)_vertexData;
 				pt1.m_x = _vertexDataFloat[0];
 				pt1.m_y = _vertexDataFloat[1];
+				pt1.m_z = _vertexDataFloat[2];
 				_vertexData += m_state.m_vertexData.m_stride;
 
 				_vertexDataFloat = (float*)_vertexData;
 				pt2.m_x = _vertexDataFloat[0];
 				pt2.m_y = _vertexDataFloat[1];
+				pt2.m_z = _vertexDataFloat[2];
 				_vertexData += m_state.m_vertexData.m_stride;
 
 				// 取颜色坐标

@@ -124,13 +124,13 @@ void Render()
     
     GT::Point ptArray[] =
     {
-        {200.0f,   0.0f, -100.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
-        {800.0f, 0.0f, -100.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
-        {800.0f, 300.0f, -100.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)},
+        {0.0f,   0.0f, 0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0)},
+        {300.0f, 0.0f, 0.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
+        {300.0f, 300.0f, -100.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)},
 
-                { 0.0f,   0.0f, 0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0) },
-        {500.0f, 0.0f, 0.0f, GT::RGBA(0, 255, 0), GT::floatV2(1.0, 0)},
-        {500.0f, 300.0f, 0.0f, GT::RGBA(0, 0, 255), GT::floatV2(1.0, 1.0)}
+        {300.0f,   0.0f, 0.0f, GT::RGBA(255, 0, 0), GT::floatV2(0, 0) },
+        {300.0f, 300.0f, 0.0f, GT::RGBA(0, 255, 0), GT::floatV2(0.0, 0)},
+        {300.0f, 0.0f, -500.0f, GT::RGBA(0, 0, 255), GT::floatV2(0.0, 0.0)}
     };
 
     for (int i = 0; i < 6; ++i)
