@@ -1,17 +1,17 @@
 #include "Image.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include"stb_image.h"
 
 namespace GT
 {
-	Image* GT::Image::readFromFile(const char* _fileName)
+	Image* Image::readFromFile(const char* _fileName)
 	{
-		int		_picType = 0;
-		int		_width = 0;
-		int		_height = 0;
+		int			_picType = 0;
+		int			_width = 0;
+		int			_height = 0;
 
-		// stbimage读入的图片是反过来的
+		//stbimage读入的图片是反过来的
 		stbi_set_flip_vertically_on_load(true);
 
 		unsigned char* bits = stbi_load(_fileName, &_width, &_height, &_picType, STBI_rgb_alpha);
@@ -29,6 +29,7 @@ namespace GT
 		return _image;
 	}
 
+
 	Image* Image::zoomImageSimple(const Image* _image, float _zoomX, float _zoomY)
 	{
 		int _width = _image->getWidth() * _zoomX;
@@ -36,15 +37,15 @@ namespace GT
 		byte* _data = new byte[_width * _height * sizeof(RGBA)];
 		Image* _resultImage = NULL;
 
-		for (int i = 0; i < _width; ++i)
+		for (int i = 0; i < _width; i++)
 		{
-			for (int j = 0; j < _height; ++j)
+			for (int j = 0; j < _height; j++)
 			{
 				int _imageX = (float)i / _zoomX;
 				int _imageY = (float)j / _zoomY;
 
-				_imageX = _imageX < _image->getWidth() ? _imageX : _image->getWidth() - 1;
-				_imageY = _imageY < _image->getHeight() ? _imageY : _image->getHeight() - 1;
+				_imageX = _imageX < _image->getWidth() ? _imageX : (_image->getWidth() - 1);
+				_imageY = _imageY < _image->getHeight() ? _imageY : (_image->getHeight() - 1);
 
 				RGBA _color = _image->getColor(_imageX, _imageY);
 				memcpy(_data + (j * _width + i) * sizeof(RGBA), &_color, sizeof(RGBA));
@@ -52,6 +53,7 @@ namespace GT
 		}
 
 		_resultImage = new Image(_width, _height, _data);
+
 
 		delete[]_data;
 		return _resultImage;
@@ -65,10 +67,11 @@ namespace GT
 		Image* _resultImage = NULL;
 
 		float coordX = 0, coordY = 0;
+
 		int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 		float disX1 = 0, disY1 = 0, disX2 = 0, disY2 = 0;
 
-		for (int i = 0; i < _width; ++i)
+		for (int i = 0; i < _width; i++)
 		{
 			coordX = (float)i / _zoomX;
 			x1 = (int)coordX;
@@ -83,7 +86,7 @@ namespace GT
 			}
 			disX1 = coordX - x1;
 			disX2 = 1.0 - disX1;
-			for (int j = 0; j < _height; ++j)
+			for (int j = 0; j < _height; j++)
 			{
 				coordY = (float)j / _zoomY;
 				y1 = (int)coordY;
@@ -106,33 +109,34 @@ namespace GT
 
 				RGBA _targetColor;
 				_targetColor.m_r = (float)_color11.m_r * disX2 * disY2 +
-									(float)_color12.m_r * disX2 * disY1 +
-									(float)_color21.m_r * disX1 * disY2 +
-									(float)_color22.m_r * disX1 * disY1;
+					(float)_color12.m_r * disX2 * disY1 +
+					(float)_color21.m_r * disX1 * disY2 +
+					(float)_color22.m_r * disX1 * disY1;
 
 				_targetColor.m_g = (float)_color11.m_g * disX2 * disY2 +
-									(float)_color12.m_g * disX2 * disY1 +
-									(float)_color21.m_g * disX1 * disY2 +
-									(float)_color22.m_g * disX1 * disY1;
+					(float)_color12.m_g * disX2 * disY1 +
+					(float)_color21.m_g * disX1 * disY2 +
+					(float)_color22.m_g * disX1 * disY1;
 
 				_targetColor.m_b = (float)_color11.m_b * disX2 * disY2 +
-									(float)_color12.m_b * disX2 * disY1 +
-									(float)_color21.m_b * disX1 * disY2 +
-									(float)_color22.m_b * disX1 * disY1;
+					(float)_color12.m_b * disX2 * disY1 +
+					(float)_color21.m_b * disX1 * disY2 +
+					(float)_color22.m_b * disX1 * disY1;
 
 				_targetColor.m_a = (float)_color11.m_a * disX2 * disY2 +
-									(float)_color12.m_a * disX2 * disY1 +
-									(float)_color21.m_a * disX1 * disY2 +
-									(float)_color22.m_a * disX1 * disY1;
+					(float)_color12.m_a * disX2 * disY1 +
+					(float)_color21.m_a * disX1 * disY2 +
+					(float)_color22.m_a * disX1 * disY1;
 
 				memcpy(_data + (j * _width + i) * sizeof(RGBA), &_targetColor, sizeof(RGBA));
 			}
 		}
 
+
 		_resultImage = new Image(_width, _height, _data);
+
 
 		delete[]_data;
 		return _resultImage;
 	}
 }
-

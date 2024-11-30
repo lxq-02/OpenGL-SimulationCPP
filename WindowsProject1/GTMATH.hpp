@@ -1,21 +1,28 @@
 #pragma once
 namespace GT
 {
+
+#define	PI									3.14159265358979323
+#define	DEG2RAD(theta)						(0.01745329251994329 * (theta))
+#define MIN(a,b)							((a)<(b)?(a):(b))
+#define MAX(a,b)							((a)>(b)?(a):(b))
+
 	template<typename T>
-	void swapT(T& a, T& b)
+	void	swapT(T& a, T& b)
 	{
 		T tmp = a;
 		a = b;
 		b = tmp;
 	}
-#define SWAP_INT(a, b) swapT<int>(a, b)
+
+#define		SWAP_INT(a , b)   swapT<int>(a , b);
 	template<typename T>
 	struct tVec2
 	{
-		T x;
-		T y;
+		T	x;
+		T	y;
 
-		tVec2(T _x, T _y)
+		tVec2(T	_x, T	_y)
 		{
 			x = _x;
 			y = _y;
@@ -39,7 +46,6 @@ namespace GT
 		int m_right;
 		int m_top;
 		int m_bottom;
-
 		GT_RECT(int _left = 0,
 			int _right = 0,
 			int _top = 0,

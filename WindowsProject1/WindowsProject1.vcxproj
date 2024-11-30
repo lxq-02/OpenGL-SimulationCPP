@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GT.hpp" />
     <ClInclude Include="GTMATH.hpp" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Resource.h" />
